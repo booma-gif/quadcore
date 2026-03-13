@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - CitySimulate</title>
+    <!-- Leaflet & Chart.js -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <header class="navbar">
+        <div style="display: flex; align-items: center; gap: 30px;">
+            <a href="index.html" class="logo">CitySimulate</a>
+            <div class="nav-links">
+                <nav>
+                    <a href="dashboard.html">Simulator</a>
+                    <a href="experiment.html">Experiments</a>
+                    <a href="analytics.html" class="active">Analytics</a>
+                    <a href="compare.html">Compare</a>
+                    <a href="docs.html">Docs</a>
+                </nav>
+            </div>
+        </div>
+        <div class="nav-right" id="nav-user"></div>
+    </header>
+
+    <div class="container mt-2 mb-3">
+        <div class="flex-between mb-2">
+            <h2>Analytics & Results Dashboard</h2>
+            <select id="simSelector" class="btn btn-ghost" style="width:250px;">
+                <option>Loading simulations...</option>
+            </select>
+        </div>
+
+        <div class="three-area">
+            <!-- Area 1: Map -->
+            <div class="card p-0" style="overflow:hidden;">
+                <div style="padding:15px; border-bottom:1px solid var(--border-color); display:flex; gap:10px;">
+                    <button class="btn btn-ghost active" onclick="setHeatmap('congestion')">Congestion Heat Map</button>
+                    <button class="btn btn-ghost" onclick="setHeatmap('energy')">Energy Heat Map</button>
+                    <button class="btn btn-ghost" onclick="setHeatmap('transit')">Transit Coverage</button>
+                </div>
+                <div id="analyticsMap" style="height:400px; width:100%;"></div>
+            </div>
+
+            <!-- Area 2: Charts -->
+            <div class="two-column" style="gap:20px;">
+                <div class="card">
+                    <h3>Progression Over Time (12 months)</h3>
+                    <div style="height:300px; position:relative;">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Baseline vs Policy Matrix</h3>
+                    <div style="height:300px; position:relative;">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Area 3: Breakdown -->
+            <div class="card">
+                <h3>Detailed Impact Analysis</h3>
+                <div id="impact-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-top:15px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/simulation.js"></script>
+    <script src="js/policies.js"></script>
+    <script src="js/ui.js"></script>
+    
+    <script>
+        let currentMode = 'congestion';
+        let mockData = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await DB.requireAuth();
+            MapManager.init('analyticsMap');
+            
+            // Mock Data Generation for analytics
+            mockData = SimulationEngine.runSimulation(getDefaultParams());
+            
+            // Render Heatmap
+            MapManager.drawHeatmap(currentMode, mockData.final);
+
+            // Render Charts
+            ChartManager.renderMetricsLineChart('lineChart', mockData.timeSeries);
+            ChartManager.renderMetricsBarChart('barChart', mockData.baseline, mockData.final);
+
+            // Render Impact Grid
+            UI.renderKPICards('impact-grid', mockData, false);
+        });
+
+        window.setHeatmap = (type) => {
+            document.querySelectorAll('.card button').forEach(btn => btn.classList.remove('btn-primary'));
+            event.target.classList.add('btn-primary');
+            currentMode = type;
+            MapManager.drawHeatmap(currentMode, mockData.final);
+        };
+    </script>
+</body>
+</html>

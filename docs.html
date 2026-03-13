@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - CitySimulate</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .doc-nav a {
+            display: block;
+            padding: 10px;
+            color: var(--text-secondary);
+            border-radius: var(--radius-button);
+            margin-bottom: 5px;
+        }
+        .doc-nav a:hover, .doc-nav a.active {
+            background: rgba(0, 200, 150, 0.1);
+            color: var(--color-primary);
+        }
+        .doc-content h2 { margin-top: 40px; margin-bottom: 20px; color: var(--color-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .doc-content h3 { margin-top: 30px; margin-bottom: 15px; }
+        .doc-content p { margin-bottom: 15px; color: var(--text-secondary); }
+        code { background: var(--bg-surface); padding: 2px 5px; border-radius: 4px; color: var(--color-secondary); font-family: monospace; }
+        .code-block { background: var(--bg-surface); padding: 20px; border-radius: 8px; font-family: monospace; color: #a5d6a7; margin-bottom: 20px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div style="display: flex; align-items: center; gap: 30px;">
+            <a href="index.html" class="logo">CitySimulate</a>
+            <div class="nav-links">
+                <nav>
+                    <a href="dashboard.html">Simulator</a>
+                    <a href="experiment.html">Experiments</a>
+                    <a href="analytics.html">Analytics</a>
+                    <a href="compare.html">Compare</a>
+                    <a href="docs.html" class="active">Docs</a>
+                </nav>
+            </div>
+        </div>
+        <div class="nav-right" id="nav-user"></div>
+    </header>
+
+    <div class="container section mt-2 mb-3">
+        <div class="docs-layout">
+            <!-- Sidebar -->
+            <aside class="doc-nav">
+                <div class="card p-0" style="position:sticky; top:100px;">
+                    <div style="padding:20px;">
+                        <h4 class="mb-1 text-primary">Content</h4>
+                        <a href="#getting-started" class="active">Getting Started</a>
+                        <a href="#simulation-engine">Simulation Engine</a>
+                        <a href="#policy-modules">Policy Modules</a>
+                        <a href="#metrics">Understanding Metrics</a>
+                        <a href="#faq">FAQ</a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Content -->
+            <main class="doc-content card">
+                <h1 style="font-size:2.5rem; margin-bottom:20px;">Platform Documentation</h1>
+                <p>Welcome to the official documentation for the CitySimulate Platform. Learn how to configure policies, run hybrid simulations, and analyze government-scale data.</p>
+
+                <h2 id="getting-started">Getting Started</h2>
+                <p>To begin simulating the future of your city:</p>
+                <ol style="margin-left:20px; color:var(--text-secondary); margin-bottom:20px;">
+                    <li>Navigate to the <strong>Simulator</strong>.</li>
+                    <li>Adjust policy levers on the left sidebar corresponding to Transport, Energy, Housing, etc.</li>
+                    <li>Click <kbd>Run Simulation</kbd>.</li>
+                    <li>Analyze the KPIs below the map and use <strong>Analytics</strong> for deeper dives.</li>
+                </ol>
+
+                <h2 id="simulation-engine">How the Simulation Engine Works</h2>
+                <p>The core of CitySimulate is a deterministic hybrid engine that combines statistical baselines with rule-based modifiers.</p>
+                <div class="code-block">
+function calculateMetrics(params) {
+    // Base math for linear progression
+    let carbonEmissions = energyConsumption * 0.4;
+    carbonEmissions -= renewablePercent * 3;
+    return carbonEmissions;
+}
+                </div>
+                <p>Each metric is calculated inter-dependently. For instance, creating transit-oriented development will impact both Housing and Transportation scores.</p>
+
+                <h2 id="policy-modules">Policy Modules Guide</h2>
+                <p>There are five core modules available:</p>
+                <ul style="margin-left:20px; color:var(--text-secondary); margin-bottom:20px;">
+                    <li><strong>Transport:</strong> Modifies vehicle density and tolling logic.</li>
+                    <li><strong>Roads:</strong> Infrastructure construction and maintenance.</li>
+                    <li><strong>Energy:</strong> Grid load capacity and smart technology integration.</li>
+                    <li><strong>Transit:</strong> Headways, coverage geometry, and fares.</li>
+                    <li><strong>Housing:</strong> Zoning density restrictions and equity constraints.</li>
+                </ul>
+
+                <h2 id="metrics">Understanding Metrics</h2>
+                <p>Calculated outputs use standardized indexing so that inter-city comparisons mean something:</p>
+                <table style="width:100%; text-align:left; border-collapse:collapse; background:var(--bg-primary); border-radius:8px; overflow:hidden;">
+                    <thead style="background:var(--bg-surface);">
+                        <tr><th style="padding:10px;">Metric</th><th style="padding:10px;">Unit</th><th style="padding:10px;">Ideal Trend</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-top:1px solid var(--border-color);"><td style="padding:10px;">Congestion Score</td><td style="padding:10px;">0-100</td><td style="padding:10px;">Downward 📉</td></tr>
+                        <tr style="border-top:1px solid var(--border-color);"><td style="padding:10px;">Economic Impact</td><td style="padding:10px;">$ Billions</td><td style="padding:10px;">Upward 📈</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="faq">Frequently Asked Questions</h2>
+                <h3>Can I import actual GIS data?</h3>
+                <p>Currently, the sandbox supports CartoDB base tiles. Bespoke GeoJSON uploads will be supported in v2.</p>
+                
+                <h3>Where is my data saved?</h3>
+                <p>All experiments are securely saved to the government-grade Supabase Postgres cluster associated with your account.</p>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        document.querySelectorAll('.doc-nav a').forEach(a => {
+            a.addEventListener('click', (e) => {
+                document.querySelectorAll('.doc-nav a').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

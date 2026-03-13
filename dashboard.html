@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CitySimulate</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <header class="navbar">
+        <div style="display: flex; align-items: center; gap: 30px;">
+            <a href="index.html" class="logo">CitySimulate</a>
+            <div class="nav-links">
+                <nav>
+                    <a href="dashboard.html" class="active">Simulator</a>
+                    <a href="experiment.html">Experiments</a>
+                    <a href="analytics.html">Analytics</a>
+                    <a href="compare.html">Compare</a>
+                    <a href="docs.html">Docs</a>
+                </nav>
+            </div>
+        </div>
+        <div class="nav-right" id="nav-user">
+            <!-- Populated by ui.js -->
+        </div>
+    </header>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar Controls -->
+        <aside class="sidebar">
+            <h3 class="mb-1" style="font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Policy Modules</h3>
+            
+            <div class="tabs" id="module-tabs">
+                <!-- Injected via JS -->
+            </div>
+
+            <div id="slider-container" style="flex: 1; overflow-y: auto;">
+                <!-- Sliders go here -->
+            </div>
+
+            <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                <div class="toggle-switch mb-2">
+                    <label>Overlay Grid</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleGrid">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-switch mb-2">
+                    <label>Time-lapse Mode</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleTimelapse">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <button class="btn btn-primary btn-block btn-large mt-1" id="btnRun">Run Simulation</button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <div id="map" class="map-container"></div>
+            
+            <div class="dashboard-bottom">
+                <div class="flex-between mb-2">
+                    <h3 style="display:flex;align-items:center;gap:10px;">Simulation Results <span id="status-badge" class="badge" style="display:none;">Evaluating...</span></h3>
+                    <button class="btn btn-ghost" id="btnSave" style="display:none;" onclick="saveSim()">Save Results</button>
+                </div>
+                <div class="kpi-grid" id="kpi-container">
+                    <!-- KPI Cards injected here -->
+                    <div style="color:var(--text-secondary); grid-column: 1/-1;">Run a simulation to generate KPI metrics.</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/policies.js"></script>
+    <script src="js/simulation.js"></script>
+    <script src="js/ui.js"></script>
+    
+    <script>
+        // Global State
+        let currentParams = getDefaultParams();
+        let lastResults = null;
+
+        // Init App
+        document.addEventListener('DOMContentLoaded', async () => {
+            await DB.requireAuth();
+
+            // Init Map
+            MapManager.init('map');
+            
+            // Build Tabs
+            const tabContainer = document.getElementById('module-tabs');
+            let first = true;
+            for(const key in PoliciesConfig) {
+                tabContainer.innerHTML += `<button class="tab-btn ${first?'active':''}" onclick="switchModule('${key}', this)">${PoliciesConfig[key].icon}</button>`;
+                first = false;
+            }
+            // Load initial module
+            switchModule('transport', tabContainer.firstElementChild);
+            
+            // Init baseline KPI
+            const baselineResults = SimulationEngine.runSimulation(currentParams);
+            UI.renderKPICards('kpi-container', baselineResults, true);
+
+            // Listeners
+            document.getElementById('toggleGrid').addEventListener('change', (e) => {
+                MapManager.toggleGrid(e.target.checked);
+            });
+
+            document.getElementById('btnRun').addEventListener('click', runSim);
+        });
+
+        window.switchModule = (mod, btnNode) => {
+            document.querySelectorAll('#module-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+            if(btnNode) btnNode.classList.add('active');
+            UI.renderPolicySliders('slider-container', mod, currentParams);
+        }
+
+        async function runSim() {
+            const btn = document.getElementById('btnRun');
+            const badge = document.getElementById('status-badge');
+            
+            btn.disabled = true;
+            btn.innerHTML = 'Simulating...';
+            badge.style.display = 'inline-block';
+            
+            // Simulate processing time
+            await new Promise(r => setTimeout(r, 1200));
+
+            lastResults = SimulationEngine.runSimulation(currentParams);
+            
+            UI.renderKPICards('kpi-container', lastResults, false);
+            MapManager.drawSimulationResults(lastResults.final);
+
+            btn.disabled = false;
+            btn.innerHTML = 'Update Simulation';
+            badge.style.display = 'none';
+            document.getElementById('btnSave').style.display = 'inline-flex';
+        }
+
+        async function saveSim() {
+            if(!lastResults) return;
+            const btn = document.getElementById('btnSave');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+            
+            const user = await DB.getUser();
+            await DB.saveSimulation({
+                user_id: user?.id,
+                city_id: 1, // London default for now
+                name: `Ad-hoc Sim ${new Date().toLocaleTimeString()}`,
+                policy_params: currentParams,
+                results: lastResults,
+                mode: 'ad-hoc'
+            });
+
+            btn.innerText = 'Saved!';
+            setTimeout(() => {
+                btn.innerText = 'Save Results';
+                btn.disabled = false;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

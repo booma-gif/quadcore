@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Cities - CitySimulate</title>
+    <!-- Chart.js -->
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <header class="navbar">
+        <div style="display: flex; align-items: center; gap: 30px;">
+            <a href="index.html" class="logo">CitySimulate</a>
+            <div class="nav-links">
+                <nav>
+                    <a href="dashboard.html">Simulator</a>
+                    <a href="experiment.html">Experiments</a>
+                    <a href="analytics.html">Analytics</a>
+                    <a href="compare.html" class="active">Compare</a>
+                    <a href="docs.html">Docs</a>
+                </nav>
+            </div>
+        </div>
+        <div class="nav-right" id="nav-user"></div>
+    </header>
+
+    <div class="container section">
+        <h2 class="text-center mt-2 mb-3">Cross-City Scenario Comparison</h2>
+        
+        <div class="compare-layout">
+            <!-- City A -->
+            <div class="card" style="display:flex; flex-direction:column; gap:20px;">
+                <div class="input-group mb-1">
+                    <label>Select View A</label>
+                    <select id="cityA" class="btn btn-ghost" style="width:100%; border-color:var(--color-primary); color:var(--text-primary);">
+                        <option>London (Baseline)</option>
+                        <option>London (Simulated)</option>
+                        <option>Tokyo (Baseline)</option>
+                    </select>
+                </div>
+                <div id="kpi-a" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+            </div>
+
+            <!-- Radar Chart Center -->
+            <div class="card compare-chart-center" style="display:flex; flex-direction:column;">
+                <h3 class="text-center mb-1">Metric Balance</h3>
+                <div style="flex:1; position:relative; min-height:300px;">
+                    <canvas id="radarCompare"></canvas>
+                </div>
+                <div class="mt-2 text-center text-secondary" style="font-size:0.9rem;" id="compareDesc">
+                    Select simulations to compare their structural resilience and efficiency.
+                </div>
+            </div>
+
+            <!-- City B -->
+             <div class="card" style="display:flex; flex-direction:column; gap:20px;">
+                <div class="input-group mb-1">
+                    <label>Select View B</label>
+                    <select id="cityB" class="btn btn-ghost" style="width:100%; border-color:#e05050; color:var(--text-primary);">
+                        <option>New York (Baseline)</option>
+                        <option>London (Green Policy)</option>
+                    </select>
+                </div>
+                <div id="kpi-b" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/simulation.js"></script>
+    <script src="js/policies.js"></script>
+    <script src="js/ui.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Generate mock data for radar chart (scaled 0-100)
+            const dataA = [40, 60, 80, 50, 70, 45, 80, 60];
+            const dataB = [70, 40, 50, 80, 40, 70, 60, 80];
+
+            ChartManager.renderRadarChart('radarCompare', dataA, dataB, "City A", "City B");
+
+            // Mock KPI rendering
+            const renderMockKPI = (containerId, color) => {
+                const c = document.getElementById(containerId);
+                const metrics = ['Congestion', 'Emissions', 'Economy', 'Transit'];
+                c.innerHTML = metrics.map(m => `
+                    <div style="background:var(--bg-primary); padding:10px; border-radius:8px; border-left:4px solid ${color}">
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">${m}</div>
+                        <div style="font-size:1.5rem; font-weight:700;">${Math.floor(Math.random()*100)}</div>
+                    </div>
+                `).join('');
+            };
+
+            renderMockKPI('kpi-a', 'var(--color-primary)');
+            renderMockKPI('kpi-b', '#e05050');
+
+            document.getElementById('cityA').addEventListener('change', () => {
+                 renderMockKPI('kpi-a', 'var(--color-primary)');
+                 ChartManager.renderRadarChart('radarCompare', [Math.random()*100,Math.random()*100,80,50,70,45,80,60], dataB, "City A", "City B");
+            });
+            document.getElementById('cityB').addEventListener('change', () => {
+                 renderMockKPI('kpi-b', '#e05050');
+                 ChartManager.renderRadarChart('radarCompare', dataA, [Math.random()*100,40,50,80,Math.random()*100,70,60,80], "City A", "City B");
+            });
+        });
+    </script>
+</body>
+</html>

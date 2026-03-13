@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CitySimulate | Infrastructure Sandbox</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+
+<body>
+    <div class="hero">
+        <canvas id="canvas-bg"></canvas>
+        <div class="hero-content">
+            <h1 class="glow-text">Simulate. Analyse.<br>Transform Cities.</h1>
+            <p>A government-grade platform for testing public infrastructure policies before real-world implementation.
+            </p>
+            <div style="display:flex; gap:20px; justify-content:center; margin-bottom: 40px;">
+                <a href="dashboard.html" class="btn btn-primary btn-large">Start Simulating</a>
+                <a href="docs.html" class="btn btn-ghost btn-large">Learn More</a>
+            </div>
+
+            <div class="stats-bar card"
+                style="display: inline-flex; gap: 40px; justify-content: center; padding: 15px 40px; border-radius: 50px; background: rgba(17,26,20,0.5); backdrop-filter: blur(10px);">
+                <div><strong>5</strong> Policy Modules</div>
+                <div><strong>8</strong> Metrics Tracked</div>
+                <div><strong>Real-time</strong> Simulation</div>
+                <div style="color:var(--color-primary)"><strong>Supabase</strong> Powered</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container section" style="padding: 100px 20px;">
+        <h2 class="text-center mb-3">Core Capabilities</h2>
+        <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+            <div class="card">
+                <h3>🚗 Transportation Simulation</h3>
+                <p class="text-secondary">Model traffic density, speed limits, and the impact of congestion charging
+                    zones on city-wide flow.</p>
+            </div>
+            <div class="card">
+                <h3>⚡ Energy Grid Modelling</h3>
+                <p class="text-secondary">Simulate the transition to renewable energy sources, smart grids, and shifting
+                    load demands.</p>
+            </div>
+            <div class="card">
+                <h3>🚇 Public Transit Planning</h3>
+                <p class="text-secondary">Analyze accessibility and ridership changes based on bus frequencies, metro
+                    coverage, and fare pricing.</p>
+            </div>
+            <div class="card">
+                <h3>🛣️ Road Infrastructure</h3>
+                <p class="text-secondary">Evaluate the economic and environmental impacts of road expansion versus
+                    maintenance works.</p>
+            </div>
+            <div class="card">
+                <h3>🏢 Housing & Zoning Policy</h3>
+                <p class="text-secondary">Test zoning densities, affordable housing quotas, and green space allocation
+                    on citizen well-being.</p>
+            </div>
+            <div class="card">
+                <h3>📈 Real-time Analytics</h3>
+                <p class="text-secondary">Instant feedback across 8 critical KPIs to ensure policy decisions are
+                    data-driven and justified.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container section" style="padding: 50px 20px 100px; text-align: center;">
+        <h2 class="mb-3">How It Works</h2>
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <div class="card" style="flex: 1; min-width: 250px;">
+                <div style="font-size: 2rem; color: var(--color-primary); margin-bottom: 10px;">1</div>
+                <h3>Configure Policy</h3>
+                <p class="text-secondary">Tweak sliders across 5 modules.</p>
+            </div>
+            <div class="card" style="flex: 1; min-width: 250px;">
+                <div style="font-size: 2rem; color: var(--color-primary); margin-bottom: 10px;">2</div>
+                <h3>Run Simulation</h3>
+                <p class="text-secondary">Watch the hybrid engine crunch the numbers.</p>
+            </div>
+            <div class="card" style="flex: 1; min-width: 250px;">
+                <div style="font-size: 2rem; color: var(--color-primary); margin-bottom: 10px;">3</div>
+                <h3>Analyse Results</h3>
+                <p class="text-secondary">Compare baseline vs policy to make the right choice.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer
+        style="text-align: center; padding: 40px; border-top: 1px solid var(--border-color); color: var(--text-secondary);">
+        <p>&copy; 2024 CitySimulate. Built by Antigravity.</p>
+        <div style="margin-top: 10px; display: flex; gap: 15px; justify-content: center;">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="docs.html">Documentation</a>
+            <a href="login.html">Login</a>
+        </div>
+    </footer>
+
+    <!-- Background Animation Script -->
+    <script>
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const dots = [];
+        for (let i = 0; i < 100; i++) {
+            dots.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                radius: Math.random() * 2
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00c896';
+
+            dots.forEach(dot => {
+                dot.x += dot.vx;
+                dot.y += dot.vy;
+
+                if (dot.x < 0 || dot.x > canvas.width) dot.vx *= -1;
+                if (dot.y < 0 || dot.y > canvas.height) dot.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
+                ctx.globalAlpha = 0.5;
+                ctx.fill();
+            });
+
+            // Draw lines between close dots
+            for (let i = 0; i < dots.length; i++) {
+                for (let j = i + 1; j < dots.length; j++) {
+                    const dx = dots[i].x - dots[j].x;
+                    const dy = dots[i].y - dots[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 100) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = '#00c896';
+                        ctx.globalAlpha = 1 - (dist / 100);
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(dots[i].x, dots[i].y);
+                        ctx.lineTo(dots[j].x, dots[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+
+</html>

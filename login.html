@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - CitySimulate</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: radial-gradient(circle at center, var(--bg-surface) 0%, var(--bg-primary) 100%);
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+        }
+        .error-msg {
+            color: #e05050;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="card auth-card">
+            <div class="text-center mb-2">
+                <a href="index.html" class="logo" style="justify-content: center;">CitySimulate</a>
+                <p class="text-secondary mt-1">Government Infrastructure Portal</p>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" style="flex:1" data-target="login">Login</button>
+                <button class="tab-btn" style="flex:1" data-target="signup">Sign Up</button>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <div id="login" class="tab-content active">
+                <form id="loginForm">
+                    <div id="loginError" class="error-msg"></div>
+                    <div class="input-group">
+                        <label>Email Address</label>
+                        <input type="email" id="loginEmail" required placeholder="gov@city.gov">
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="btnLogin">Access System</button>
+                </form>
+            </div>
+
+            <!-- SIGNUP FORM -->
+            <div id="signup" class="tab-content">
+                <form id="signupForm">
+                    <div id="signupError" class="error-msg"></div>
+                    <div class="input-group">
+                        <label>Full Name</label>
+                        <input type="text" id="signupName" required placeholder="Jane Doe">
+                    </div>
+                    <div class="input-group">
+                        <label>Organisation</label>
+                        <input type="text" id="signupOrg" required placeholder="Dept. of Transport">
+                    </div>
+                    <div class="input-group">
+                        <label>Email Address</label>
+                        <input type="email" id="signupEmail" required placeholder="gov@city.gov">
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="signupPassword" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="btnSignup">Create Secure Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/ui.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnLogin');
+            const err = document.getElementById('loginError');
+            
+            err.style.display = 'none';
+            btn.innerHTML = 'Connecting...';
+            btn.disabled = true;
+
+            const { error } = await DB.signIn(
+                document.getElementById('loginEmail').value,
+                document.getElementById('loginPassword').value
+            );
+
+            if (error) {
+                err.innerText = error.message;
+                err.style.display = 'block';
+                btn.innerHTML = 'Access System';
+                btn.disabled = false;
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+        });
+
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSignup');
+            const err = document.getElementById('signupError');
+            
+            err.style.display = 'none';
+            btn.innerHTML = 'Provisioning...';
+            btn.disabled = true;
+
+            const { error } = await DB.signUp(
+                document.getElementById('signupEmail').value,
+                document.getElementById('signupPassword').value,
+                document.getElementById('signupName').value,
+                document.getElementById('signupOrg').value
+            );
+
+            if (error) {
+                err.innerText = error.message;
+                err.style.display = 'block';
+                btn.innerHTML = 'Create Secure Account';
+                btn.disabled = false;
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>
