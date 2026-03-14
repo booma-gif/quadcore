@@ -63,6 +63,23 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+                <div class="fetch-data-section">
+                    <div class="city-search-row">
+                        <input type="text" id="city-search-input" class="city-search-input" placeholder="Enter city name..." value="London" />
+                        <div id="city-search-status" class="city-search-status"></div>
+                    </div>
+                    <button id="btn-fetch-live-data" class="btn-fetch-live">
+                        <span class="fetch-icon">⬇</span>
+                        <span id="fetch-btn-text">Fetch Live Data</span>
+                    </button>
+                    <div id="live-data-status" class="live-data-status" style="display:none;"></div>
+                    <div id="live-data-badges" class="live-data-badges" style="display:none;">
+                        <span class="data-badge" id="badge-traffic">🚦 Traffic: --</span>
+                        <span class="data-badge" id="badge-air">🌿 Air: --</span>
+                        <span class="data-badge" id="badge-transit">🚌 Transit: --</span>
+                        <span class="data-badge" id="badge-roads">🛣️ Roads: --</span>
+                    </div>
+                </div>
                 <button class="btn btn-primary btn-block btn-large mt-1" id="btnRun">▶ Run Simulation</button>
             </div>
         </aside>
@@ -99,6 +116,7 @@
     <script src="js/ui.js"></script>
     <script src="js/roadWork.js"></script>
     <script src="js/features.js"></script>
+    <script src="js/liveData.js"></script>
 
     <script>
         // Global State

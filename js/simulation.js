@@ -26,19 +26,26 @@ const SimulationEngine = {
   calculateMetrics(params) {
     const { transport, roads, energy, transit, housing } = params;
 
+    // Use live baseline if available, otherwise hardcoded defaults
+    const activeBaseline = window.SIMULATION_BASELINE || {
+      congestionScore: 65, travelTime: 35,
+      carbonEmissions: 180, transitAccessibility: 40,
+      roadHealth: 60
+    };
+
     // 1. Traffic Congestion Score (0-100, lower is better)
-    let congestionScore = 65;
+    let congestionScore = activeBaseline.congestionScore;
     if (transport.congestionCharge) congestionScore -= 15;
     congestionScore += (transport.trafficDensity - 50) * 0.4;
     congestionScore -= (transport.speedLimit - 50) * 0.1;
     congestionScore = this.clamp(congestionScore, 0, 100);
 
     // 2. Average Travel Time (minutes)
-    let travelTime = 35;
+    let travelTime = activeBaseline.travelTime;
     travelTime += congestionScore * 0.3;
     travelTime -= (transit.metroCoverage / 100) * 10;
     travelTime -= (transit.busFrequency < 10 ? 5 : 0);
-    travelTime = Math.max(travelTime, 5); // Minimum 5 mins
+    travelTime = Math.max(travelTime, 5);
 
     // 3. Energy Consumption (GWh)
     let energyConsumption = 450;
@@ -54,7 +61,7 @@ const SimulationEngine = {
     carbonEmissions = Math.max(carbonEmissions, 0);
 
     // 5. Transit Accessibility (0-100, higher is better)
-    let transitAccessibility = 40;
+    let transitAccessibility = activeBaseline.transitAccessibility;
     transitAccessibility += transit.metroCoverage * 0.4;
     transitAccessibility += (30 - transit.busFrequency) * 1.5;
     transitAccessibility -= transit.farePrice * 0.5;
@@ -144,4 +151,13 @@ const SimulationEngine = {
       timeSeries
     };
   }
+};
+
+// Expose baseline globally so liveData.js can update it
+window.SIMULATION_BASELINE = {
+  congestionScore: 65,
+  travelTime: 35,
+  carbonEmissions: 180,
+  transitAccessibility: 40,
+  roadHealth: 60
 };

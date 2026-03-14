@@ -1370,3 +1370,197 @@ input:checked + .slider:before {
   color: #e05050;
   border-color: rgba(224, 80, 80, 0.4);
 }
+
+/* ═══════════════════════════════════════ */
+/* FETCH LIVE DATA SECTION                 */
+/* ═══════════════════════════════════════ */
+
+.fetch-data-section {
+  margin-bottom: 16px;
+  padding: 14px;
+  background: var(--bg-elevated, #162019);
+  border: 1px solid var(--border-color, #1a2e22);
+  border-radius: 10px;
+}
+
+.city-search-row {
+  margin-bottom: 10px;
+}
+
+.city-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-surface, #111a14);
+  border: 1px solid var(--border-color, #1a2e22);
+  border-radius: 6px;
+  color: var(--text-primary, #e8f5f0);
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.city-search-input:focus {
+  border-color: var(--color-primary, #00c896);
+}
+
+.city-search-input::placeholder {
+  color: var(--text-muted, #4a7a5a);
+}
+
+.btn-fetch-live {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(0, 200, 150, 0.1);
+  border: 1px solid rgba(0, 200, 150, 0.3);
+  border-radius: 8px;
+  color: var(--color-primary, #00c896);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 0.2px;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-fetch-live:hover {
+  background: rgba(0, 200, 150, 0.18);
+  border-color: rgba(0, 200, 150, 0.5);
+}
+
+.btn-fetch-live:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-fetch-live.loading {
+  animation: fetchPulse 1s ease-in-out infinite;
+}
+
+@keyframes fetchPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.fetch-icon {
+  font-size: 14px;
+}
+
+.live-data-status {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-secondary, #7ab89a);
+  text-align: center;
+  min-height: 16px;
+  line-height: 1.4;
+}
+
+.live-data-status.error {
+  color: var(--color-danger, #e05050);
+}
+
+.live-data-status.success {
+  color: var(--color-primary, #00c896);
+}
+
+.live-data-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.data-badge {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: rgba(0, 200, 150, 0.08);
+  border: 1px solid rgba(0, 200, 150, 0.2);
+  color: var(--color-primary, #00c896);
+  white-space: nowrap;
+}
+
+.data-badge.stale {
+  background: rgba(240, 192, 64, 0.08);
+  border-color: rgba(240, 192, 64, 0.2);
+  color: #f0c040;
+}
+
+.data-badge.error {
+  background: rgba(224, 80, 80, 0.08);
+  border-color: rgba(224, 80, 80, 0.2);
+  color: #e05050;
+}
+
+.kpi-card .live-indicator {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary, #00c896);
+  margin-left: 4px;
+  animation: liveDot 2s ease-in-out infinite;
+  vertical-align: middle;
+}
+
+@keyframes liveDot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* ═══════════════════════════════════════ */
+/* CITY PIN & SEARCH STATUS                */
+/* ═══════════════════════════════════════ */
+
+.city-pin-pulse {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 200, 150, 0.2);
+  border: 2px solid #00c896;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: cityPinAnim 2s ease-in-out infinite;
+}
+
+.city-pin-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00c896;
+}
+
+@keyframes cityPinAnim {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 200, 150, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(0, 200, 150, 0);
+  }
+}
+
+.city-search-status {
+  font-size: 11px;
+  margin-top: 6px;
+  text-align: center;
+  min-height: 14px;
+  transition: all 0.2s ease;
+}
+
+.city-search-status.searching {
+  color: var(--text-secondary, #7ab89a);
+}
+
+.city-search-status.found {
+  color: var(--color-primary, #00c896);
+}
+
+.city-search-status.not-found {
+  color: var(--color-danger, #e05050);
+}

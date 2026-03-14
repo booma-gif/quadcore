@@ -24,6 +24,7 @@ const MapManager = {
     }
 
     this.map = L.map(containerId).setView(MapConfig.defaultCenter, MapConfig.defaultZoom);
+    window.CitySimulateMap = this.map;
     
     L.tileLayer(MapConfig.tileLayer, {
         attribution: MapConfig.attribution,
