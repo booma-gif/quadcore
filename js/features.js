@@ -67,6 +67,73 @@ const infraTypes = {
    TRAFFIC REGION MANAGER
    ═══════════════════════════════════════ */
 
+// ─── SMOOTH TRAFFIC ANIMATION ENGINE ──────────────
+
+var trafficRegionsVisible = true;
+var activeAnimations = new Map();
+
+function animateTrafficZone(zone, level) {
+  stopZoneAnimation(zone);
+
+  var cycleDuration = { critical: 600, high: 1200, medium: 2400, low: 4000 };
+  var opacityConfig = {
+    critical: { max: 0.80, min: 0.15 },
+    high:     { max: 0.70, min: 0.18 },
+    medium:   { max: 0.60, min: 0.20 },
+    low:      { max: 0.50, min: 0.18 }
+  };
+
+  var duration = cycleDuration[level] || 2400;
+  var opConfig = opacityConfig[level] || opacityConfig.medium;
+  var startTime = null;
+  var animationId = null;
+  var isRunning = true;
+
+  function tick(timestamp) {
+    if (!isRunning) return;
+    if (!TrafficRegionManager.layerGroup || !TrafficRegionManager.layerGroup.hasLayer(zone)) {
+      stopZoneAnimation(zone);
+      return;
+    }
+    if (!startTime) startTime = timestamp;
+    var elapsed = timestamp - startTime;
+    var progress = elapsed / duration;
+    var sineValue = Math.sin(progress * Math.PI * 2);
+    var opRange = opConfig.max - opConfig.min;
+    var opacity = opConfig.min + (opRange * ((sineValue + 1) / 2));
+    try {
+      zone.setStyle({ fillOpacity: opacity, opacity: Math.min(opacity + 0.15, 1) });
+    } catch(e) {
+      stopZoneAnimation(zone);
+      return;
+    }
+    animationId = requestAnimationFrame(tick);
+  }
+
+  animationId = requestAnimationFrame(tick);
+
+  activeAnimations.set(zone, {
+    stop: function() {
+      isRunning = false;
+      if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
+    }
+  });
+}
+
+function stopZoneAnimation(zone) {
+  if (activeAnimations.has(zone)) {
+    activeAnimations.get(zone).stop();
+    activeAnimations.delete(zone);
+  }
+}
+
+function stopAllZoneAnimations() {
+  activeAnimations.forEach(function(anim) { anim.stop(); });
+  activeAnimations.clear();
+}
+
+// ─── END ANIMATION ENGINE ──────────────────────────
+
 const TrafficRegionManager = {
   regions: [],
   drawingMode: false,
@@ -82,6 +149,7 @@ const TrafficRegionManager = {
     this.layerGroup = L.layerGroup().addTo(map);
     this._initCanvas();
     this._startDotAnimation();
+    this._initHideButton();
     console.log('[TrafficRegionManager] Initialized');
   },
 
@@ -200,26 +268,45 @@ const TrafficRegionManager = {
       // Generate dots for animation
       this._generateDotsForRegion(region);
 
-      // Staggered fade-in animation
+      // Staggered smooth animation start
       zone.setStyle({ fillOpacity: 0, opacity: 0 });
-      const finalFillOpacity = 1;
-      const zoneRef = zone;
-      setTimeout(function() {
-        zoneRef.setStyle({ fillOpacity: finalFillOpacity, opacity: 0.7 });
-      }, i * 120);
+      setTimeout(function(z, lvl) {
+        return function() { animateTrafficZone(z, lvl); };
+      }(zone, level), 50 + (i * 30));
     }
 
     // Update sidebar list
     this._updateList();
     MetricAggregator.recalculate();
+
+    // Show hide button reliably
+    var hideBtn = document.getElementById('btn-hide-traffic-regions');
+    if (hideBtn) {
+      hideBtn.style.display = 'block';
+      hideBtn.textContent = 'Hide Traffic Regions';
+      hideBtn.style.color = '';
+      hideBtn.style.borderColor = '';
+      hideBtn.style.background = '';
+    }
+    trafficRegionsVisible = true;
+
     console.log(`[TrafficRegion] Auto-generated ${zoneCount} zones`);
   },
 
   clearAll() {
+    // Stop all smooth animations
+    stopAllZoneAnimations();
     this.layerGroup.clearLayers();
     this.dots = [];
     this.regions = [];
     this._updateList();
+
+    // Hide the hide button
+    var hideBtn = document.getElementById('btn-hide-traffic-regions');
+    if (hideBtn) {
+      hideBtn.style.display = 'none';
+    }
+    trafficRegionsVisible = true;
   },
 
   _generateDotsForRegion(region) {
@@ -308,6 +395,51 @@ const TrafficRegionManager = {
   _removeInstruction() {
     const el = document.getElementById('map-instruction');
     if (el) el.remove();
+  },
+
+  _initHideButton() {
+    var self = this;
+    // Use event delegation so it works regardless of button existence timing
+    document.body.addEventListener('click', function(e) {
+      if (e.target.id !== 'btn-hide-traffic-regions') return;
+
+      if (trafficRegionsVisible) {
+        // HIDE — stop animations and remove from map view
+        self.regions.forEach(function(r) {
+          stopZoneAnimation(r.rect);
+          if (r.rect && self.layerGroup.hasLayer(r.rect)) {
+            self.layerGroup.removeLayer(r.rect);
+          }
+          if (r.labelMarker && self.layerGroup.hasLayer(r.labelMarker)) {
+            self.layerGroup.removeLayer(r.labelMarker);
+          }
+        });
+        self.dots = [];
+
+        e.target.textContent = 'Restore Traffic Regions';
+        e.target.style.color = '#00c896';
+        e.target.style.borderColor = 'rgba(0, 200, 150, 0.4)';
+        e.target.style.background = 'rgba(0, 200, 150, 0.06)';
+        trafficRegionsVisible = false;
+
+      } else {
+        // RESTORE — add back and restart animations
+        self.regions.forEach(function(r) {
+          if (r.rect) r.rect.addTo(self.layerGroup);
+          if (r.labelMarker) r.labelMarker.addTo(self.layerGroup);
+          self._generateDotsForRegion(r);
+          setTimeout(function() {
+            animateTrafficZone(r.rect, r.level);
+          }, 80);
+        });
+
+        e.target.textContent = 'Hide Traffic Regions';
+        e.target.style.color = '';
+        e.target.style.borderColor = '';
+        e.target.style.background = '';
+        trafficRegionsVisible = true;
+      }
+    });
   },
 
   getImpact() {
@@ -797,15 +929,15 @@ const MetricAggregator = {
   baseline: { travelTime: 28, co2: 340, energy: 2.4, accessibility: 67, cost: 2400000, congestion: 65, housing: 50, roadHealth: 60 },
 
   recalculate() {
-    const trafficImpact = TrafficRegionManager.getImpact();
+    // Traffic zones are excluded from simulation - they represent existing baseline traffic
     const busImpact = BusRouteManager.getImpact();
     const infraImpact = InfrastructureManager.getImpact();
     const roadWorkImpact = (typeof RoadWorkManager !== 'undefined') ? RoadWorkManager.getImpact() : { travelTime: 0, co2: 0, energy: 0, accessibility: 0, cost: 0, congestion: 0, housing: 0, roadHealth: 0 };
 
-    // Sum all deltas
+    // Sum all deltas (traffic excluded)
     const totalDelta = {};
     ['travelTime','co2','energy','accessibility','cost','congestion','housing','roadHealth'].forEach(key => {
-      totalDelta[key] = (trafficImpact[key]||0) + (busImpact[key]||0) + (infraImpact[key]||0) + (roadWorkImpact[key]||0);
+      totalDelta[key] = (busImpact[key]||0) + (infraImpact[key]||0) + (roadWorkImpact[key]||0);
     });
 
     // Apply percentage deltas to baseline
@@ -1042,6 +1174,7 @@ function injectFeatureSections() {
         <button class="btn-ghost-purple" onclick="TrafficRegionManager.showTrafficRegions()">
           🚗 Show Traffic of Region
         </button>
+        <button id="btn-hide-traffic-regions" class="rw-hide-traffic-btn" style="display:none;">Hide Traffic Regions</button>
         <div class="active-items-list" id="traffic-regions-list">
           <div style="color:var(--text-secondary);font-size:0.8rem;padding:5px 0;">No regions drawn yet</div>
         </div>

@@ -1331,3 +1331,42 @@ input:checked + .slider:before {
   border-color: #e05050;
   background: rgba(224, 80, 80, 0.06);
 }
+
+/* ═══════════════════════════════════════ */
+/* TRAFFIC ZONE SMOOTH ANIMATION           */
+/* ═══════════════════════════════════════ */
+
+.leaflet-interactive {
+  transition: none;
+}
+
+.traffic-zone-animated {
+  transition: fill-opacity 0.8s ease-in-out,
+              stroke-opacity 0.8s ease-in-out !important;
+}
+
+/* ═══════════════════════════════════════ */
+/* HIDE TRAFFIC REGIONS BUTTON             */
+/* ═══════════════════════════════════════ */
+
+.rw-hide-traffic-btn {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 11px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #1a2e22);
+  background: transparent;
+  color: var(--text-muted, #4a7a5a);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 6px;
+  letter-spacing: 0.2px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+}
+
+.rw-hide-traffic-btn:hover {
+  background: rgba(224, 80, 80, 0.06);
+  color: #e05050;
+  border-color: rgba(224, 80, 80, 0.4);
+}
