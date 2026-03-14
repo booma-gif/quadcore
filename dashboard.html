@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
 </head>
+
 <body>
     <!-- Navbar -->
     <header class="navbar">
@@ -19,10 +21,10 @@
                 <nav>
                     <a href="dashboard.html" class="active">Simulator</a>
                     <a href="results.html">Results</a>
-                    <a href="experiment.html">Experiments</a>
                     <a href="analytics.html">Analytics</a>
                     <a href="compare.html">Compare</a>
                     <a href="docs.html">Docs</a>
+                    <a href="experiment.html">Experiments</a>
                 </nav>
             </div>
         </div>
@@ -34,8 +36,10 @@
     <div class="dashboard-layout">
         <!-- Sidebar Controls -->
         <aside class="sidebar">
-            <h3 class="mb-1" style="font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Policy Modules</h3>
-            
+            <h3 class="mb-1"
+                style="font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Policy
+                Modules</h3>
+
             <div class="tabs" id="module-tabs">
                 <!-- Injected via JS -->
             </div>
@@ -68,15 +72,18 @@
             <div id="map" class="map-container"></div>
             <!-- Simulation Overlay -->
             <div class="sim-overlay" id="sim-overlay"></div>
-            
+
             <div class="dashboard-bottom">
                 <div class="flex-between mb-2">
-                    <h3 style="display:flex;align-items:center;gap:10px;">Simulation Results <span id="status-badge" class="badge" style="display:none;">Evaluating...</span></h3>
-                    <button class="btn btn-ghost" id="btnSave" style="display:none;" onclick="saveSim()">Save Results</button>
+                    <h3 style="display:flex;align-items:center;gap:10px;">Simulation Results <span id="status-badge"
+                            class="badge" style="display:none;">Evaluating...</span></h3>
+                    <button class="btn btn-ghost" id="btnSave" style="display:none;" onclick="saveSim()">Save
+                        Results</button>
                 </div>
                 <div class="kpi-grid" id="kpi-container">
                     <!-- KPI Cards injected here -->
-                    <div style="color:var(--text-secondary); grid-column: 1/-1;">Run a simulation to generate KPI metrics.</div>
+                    <div style="color:var(--text-secondary); grid-column: 1/-1;">Run a simulation to generate KPI
+                        metrics.</div>
                 </div>
             </div>
         </main>
@@ -90,8 +97,9 @@
     <script src="js/policies.js"></script>
     <script src="js/simulation.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/roadWork.js"></script>
     <script src="js/features.js"></script>
-    
+
     <script>
         // Global State
         let currentParams = getDefaultParams();
@@ -103,17 +111,17 @@
 
             // Init Map
             const map = MapManager.init('map');
-            
+
             // Build Tabs
             const tabContainer = document.getElementById('module-tabs');
             let first = true;
-            for(const key in PoliciesConfig) {
-                tabContainer.innerHTML += `<button class="tab-btn ${first?'active':''}" onclick="switchModule('${key}', this)">${PoliciesConfig[key].icon}</button>`;
+            for (const key in PoliciesConfig) {
+                tabContainer.innerHTML += `<button class="tab-btn ${first ? 'active' : ''}" onclick="switchModule('${key}', this)">${PoliciesConfig[key].name}</button>`;
                 first = false;
             }
             // Load initial module
             switchModule('transport', tabContainer.firstElementChild);
-            
+
             // Init new features (Traffic Regions, Bus Routes, Infrastructure)
             if (typeof initFeatures === 'function' && map) {
                 initFeatures(map);
@@ -129,23 +137,23 @@
 
         window.switchModule = (mod, btnNode) => {
             document.querySelectorAll('#module-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-            if(btnNode) btnNode.classList.add('active');
+            if (btnNode) btnNode.classList.add('active');
             UI.renderPolicySliders('slider-container', mod, currentParams);
         }
 
         async function runSim() {
             const btn = document.getElementById('btnRun');
             const badge = document.getElementById('status-badge');
-            
+
             btn.disabled = true;
             btn.innerHTML = 'Simulating...';
             badge.style.display = 'inline-block';
-            
+
             // Simulate processing time
             await new Promise(r => setTimeout(r, 1200));
 
             lastResults = SimulationEngine.runSimulation(currentParams);
-            
+
             UI.renderKPICards('kpi-container', lastResults, false);
             MapManager.drawSimulationResults(lastResults.final);
 
@@ -156,11 +164,11 @@
         }
 
         async function saveSim() {
-            if(!lastResults) return;
+            if (!lastResults) return;
             const btn = document.getElementById('btnSave');
             btn.disabled = true;
             btn.innerText = 'Saving...';
-            
+
             const user = await DB.getUser();
             await DB.saveSimulation({
                 user_id: user?.id,
@@ -179,4 +187,5 @@
         }
     </script>
 </body>
+
 </html>

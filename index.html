@@ -8,10 +8,101 @@
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
+    <style>
+        .landing-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 56px;
+            background: rgba(10, 15, 13, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid #1a2e22;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            box-sizing: border-box;
+        }
+        .landing-header-left {
+            flex: 1;
+        }
+        .landing-nav {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+        }
+        .landing-header-right {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        .landing-nav-link {
+            display: inline-block;
+            padding: 8px 20px;
+            font-size: 14px;
+            font-weight: 400;
+            color: #7ab89a;
+            text-decoration: none;
+            border-radius: 6px;
+            letter-spacing: 0.2px;
+            transition: background 0.2s ease, color 0.2s ease;
+            white-space: nowrap;
+        }
+        .landing-nav-link:hover {
+            background: rgba(0, 200, 150, 0.08);
+            color: #e8f5f0;
+        }
+        .landing-nav-login {
+            color: #e8f5f0;
+            background: transparent;
+            font-weight: 400;
+            padding: 8px 22px;
+            border: 1px solid #1a2e22;
+        }
+        .landing-nav-login:hover {
+            background: rgba(0, 200, 150, 0.08);
+            color: #e8f5f0;
+            border-color: #2a4a35;
+        }
+        @media (max-width: 600px) {
+            .landing-header {
+                padding: 0 16px;
+            }
+            .landing-nav {
+                gap: 2px;
+            }
+            .landing-nav-link {
+                padding: 7px 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div class="hero">
+    <header class="landing-header">
+        <div class="landing-header-left"></div>
+
+        <nav class="landing-nav">
+            <a href="dashboard.html" class="landing-nav-link" id="nav-dashboard">Dashboard</a>
+            <a href="docs.html" class="landing-nav-link" id="nav-docs">Documentation</a>
+        </nav>
+
+        <div class="landing-header-right">
+            <a href="login.html" class="landing-nav-link landing-nav-login" id="nav-login">Login</a>
+        </div>
+    </header>
+
+    <div class="hero" style="padding-top: 56px;">
         <canvas id="canvas-bg"></canvas>
         <div class="hero-content">
             <h1 class="glow-text">Simulate. Analyse.<br>Transform Cities.</h1>
@@ -160,6 +251,24 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         });
+    </script>
+
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.landing-nav-link');
+            links.forEach(function(link) {
+                if (link.href && window.location.href.indexOf(link.getAttribute('href')) > -1) {
+                    link.style.color = '#00c896';
+                    link.style.background = 'rgba(0, 200, 150, 0.1)';
+                }
+            });
+            var loginBtn = document.getElementById('nav-login');
+            if (loginBtn) {
+                loginBtn.style.color = '#0a0f0d';
+                loginBtn.style.background = '#00c896';
+            }
+        })();
     </script>
 </body>
 

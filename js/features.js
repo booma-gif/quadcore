@@ -793,11 +793,12 @@ const MetricAggregator = {
     const trafficImpact = TrafficRegionManager.getImpact();
     const busImpact = BusRouteManager.getImpact();
     const infraImpact = InfrastructureManager.getImpact();
+    const roadWorkImpact = (typeof RoadWorkManager !== 'undefined') ? RoadWorkManager.getImpact() : { travelTime: 0, co2: 0, energy: 0, accessibility: 0, cost: 0, congestion: 0, housing: 0, roadHealth: 0 };
 
     // Sum all deltas
     const totalDelta = {};
     ['travelTime','co2','energy','accessibility','cost','congestion','housing','roadHealth'].forEach(key => {
-      totalDelta[key] = (trafficImpact[key]||0) + (busImpact[key]||0) + (infraImpact[key]||0);
+      totalDelta[key] = (trafficImpact[key]||0) + (busImpact[key]||0) + (infraImpact[key]||0) + (roadWorkImpact[key]||0);
     });
 
     // Apply percentage deltas to baseline
@@ -1069,6 +1070,52 @@ function injectFeatureSections() {
         </div>
       </div>
     </div>
+
+    <!-- ROAD WORK -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-header" onclick="this.classList.toggle('collapsed');this.nextElementSibling.classList.toggle('collapsed')">
+        🚧 Road Work <span class="chevron">▼</span>
+      </div>
+      <div class="sidebar-section-body" id="road-work-content">
+        <p class="tool-instructions">
+          Select a road on the map to mark it as under construction. This will impact travel time, accessibility, emissions and energy use.
+        </p>
+        <div class="road-work-mode-row">
+          <button class="map-tool-btn" id="btn-select-road-work">🚧 Select Road</button>
+        </div>
+        <div class="road-work-intensity-row">
+          <label class="tool-sub-label">Construction Intensity</label>
+          <div class="intensity-options">
+            <button class="intensity-btn active" data-intensity="minor">Minor</button>
+            <button class="intensity-btn" data-intensity="moderate">Moderate</button>
+            <button class="intensity-btn" data-intensity="major">Major</button>
+            <button class="intensity-btn" data-intensity="full-closure">Full Closure</button>
+          </div>
+        </div>
+        <div class="rw-route-section">
+          <p class="tool-sub-label" style="margin-bottom:10px;">Draw Route (Optional)</p>
+          <div class="rw-point-row">
+            <button class="rw-point-btn" id="btn-rw-start" data-state="idle">
+              <span class="rw-point-dot rw-start-dot"></span> Set Start Point
+            </button>
+            <div class="rw-point-status" id="rw-start-status">Not set</div>
+          </div>
+          <div class="rw-connector-line"></div>
+          <div class="rw-point-row">
+            <button class="rw-point-btn" id="btn-rw-end" data-state="idle">
+              <span class="rw-point-dot rw-end-dot"></span> Set End Point
+            </button>
+            <div class="rw-point-status" id="rw-end-status">Not set</div>
+          </div>
+          <button class="rw-draw-route-btn" id="btn-rw-draw-route" disabled>Draw Road Work Route</button>
+          <button class="rw-clear-route-btn" id="btn-rw-clear-route" style="display:none;">Clear Route</button>
+        </div>
+        <div class="road-work-list" id="road-work-list">
+          <p class="no-items-text" id="no-road-work-text">No road works added yet</p>
+        </div>
+        <button class="clear-btn" id="btn-clear-road-work" style="display:none;">Clear All Road Works</button>
+      </div>
+    </div>
   `;
 }
 
@@ -1163,6 +1210,12 @@ function initFeatures(map) {
   BusRouteManager.init(map);
   InfrastructureManager.init(map);
   injectFeatureSections();
+  if (typeof RoadWorkManager !== 'undefined') {
+    RoadWorkManager.init(map);
+  }
+  if (typeof RoadWorkRoute !== 'undefined') {
+    RoadWorkRoute.init(map);
+  }
   MetricAggregator.buildLiveKPICards('kpi-container');
   console.log('[Features] All feature managers initialized');
 }

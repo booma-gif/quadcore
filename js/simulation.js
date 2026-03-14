@@ -79,6 +79,25 @@ const SimulationEngine = {
     roadHealth += roads.roadExpansion ? 10 : 0;
     roadHealth = this.clamp(roadHealth, 0, 100);
 
+    // Apply road work impacts (added on top of existing calculations)
+    if (typeof window !== 'undefined' && typeof RoadWorkManager !== 'undefined' && RoadWorkManager.works && RoadWorkManager.works.length > 0) {
+      RoadWorkManager.works.forEach(function(rw) {
+        const impact = RoadWorkManager.getImpactValues(rw.intensity);
+        travelTime = travelTime * impact.travelTimeMultiplier;
+        travelTime += impact.travelTime;
+        transitAccessibility += impact.accessibility;
+        carbonEmissions += impact.co2;
+        energyConsumption += impact.energy;
+      });
+      if (RoadWorkManager.works.length > 1) {
+        travelTime = travelTime * Math.pow(1.12, RoadWorkManager.works.length - 1);
+      }
+    }
+    travelTime = Math.min(travelTime, 180);
+    transitAccessibility = Math.max(transitAccessibility, 0);
+    carbonEmissions = Math.max(carbonEmissions, 0);
+    energyConsumption = Math.max(energyConsumption, 0);
+
     return {
       congestionScore,
       travelTime,
