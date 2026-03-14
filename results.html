@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results - CitySimulate</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <header class="navbar">
+        <div style="display: flex; align-items: center; gap: 30px;">
+            <a href="index.html" class="logo">CitySimulate</a>
+            <div class="nav-links">
+                <nav>
+                    <a href="dashboard.html">Simulator</a>
+                    <a href="results.html" class="active">Results</a>
+                    <a href="experiment.html">Experiments</a>
+                    <a href="analytics.html">Analytics</a>
+                    <a href="compare.html">Compare</a>
+                    <a href="docs.html">Docs</a>
+                </nav>
+            </div>
+        </div>
+        <div class="nav-right" id="nav-user"></div>
+    </header>
+
+    <div class="container mt-2 mb-3" style="max-width: 1300px;">
+        <!-- Header -->
+        <div class="flex-between mb-2">
+            <div>
+                <h2>📈 Simulation Results</h2>
+                <p class="text-secondary" id="result-subtitle" style="font-size:0.9rem; margin-top:4px;"></p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <span class="badge" id="result-badge" style="font-size:0.85rem; padding:6px 14px;"></span>
+                <button class="btn-export" id="btn-pdf" onclick="exportPDF()">📄 Export PDF</button>
+                <a href="dashboard.html" class="btn btn-ghost">← Back to Simulator</a>
+            </div>
+        </div>
+
+        <!-- No Data Warning -->
+        <div id="no-data-msg" class="card text-center" style="display:none; padding:60px;">
+            <h3 style="margin-bottom:15px;">No Simulation Data Found</h3>
+            <p class="text-secondary">Run a simulation from the dashboard first to see results here.</p>
+            <a href="dashboard.html" class="btn btn-primary mt-2">Go to Simulator</a>
+        </div>
+
+        <!-- Results Content (hidden until data loaded) -->
+        <div id="results-content" style="display:none;">
+
+            <!-- 5 Metric Cards -->
+            <div class="results-metrics-grid" id="metrics-cards-container"></div>
+
+            <!-- What Drove These Changes -->
+            <div class="breakdown-section">
+                <h3>🔍 What Drove These Changes?</h3>
+                <div id="breakdown-container"></div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>📊 Before vs After</h3>
+                    <div style="height:300px; position:relative;"><canvas id="chart-bar"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>📈 Projected 12-Month Impact</h3>
+                    <div style="height:300px; position:relative;"><canvas id="chart-line"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>🏆 Policy Contribution to Improvement</h3>
+                    <div style="height:300px; position:relative;"><canvas id="chart-horizontal"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>🎯 City Performance Score</h3>
+                    <div style="height:300px; position:relative;"><canvas id="chart-radar"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Policy Summary Table -->
+            <div class="card mb-3">
+                <h3>📋 Policy Summary</h3>
+                <div style="overflow-x:auto; margin-top:15px;">
+                    <table class="policy-table" id="policy-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Category</th>
+                                <th>Impact Level</th>
+                                <th>Key Metric Change</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="policy-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 40px; border-top: 1px solid var(--border-color); color: var(--text-secondary);">
+        <p>&copy; 2024 CitySimulate. Built by Antigravity.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/policies.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/results.js"></script>
+</body>
+</html>

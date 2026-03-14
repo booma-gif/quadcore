@@ -2,7 +2,7 @@
 // Leaflet Map Integration
 
 const MapConfig = {
-  defaultCenter: [51.505, -0.09], // London
+  defaultCenter: [40.7128, -74.0060], // New York City
   defaultZoom: 12,
   tileLayer: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
   attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>'

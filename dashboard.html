@@ -18,6 +18,7 @@
             <div class="nav-links">
                 <nav>
                     <a href="dashboard.html" class="active">Simulator</a>
+                    <a href="results.html">Results</a>
                     <a href="experiment.html">Experiments</a>
                     <a href="analytics.html">Analytics</a>
                     <a href="compare.html">Compare</a>
@@ -58,13 +59,15 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <button class="btn btn-primary btn-block btn-large mt-1" id="btnRun">Run Simulation</button>
+                <button class="btn btn-primary btn-block btn-large mt-1" id="btnRun">▶ Run Simulation</button>
             </div>
         </aside>
 
         <!-- Main Workspace -->
         <main class="main-content">
             <div id="map" class="map-container"></div>
+            <!-- Simulation Overlay -->
+            <div class="sim-overlay" id="sim-overlay"></div>
             
             <div class="dashboard-bottom">
                 <div class="flex-between mb-2">
@@ -87,6 +90,7 @@
     <script src="js/policies.js"></script>
     <script src="js/simulation.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/features.js"></script>
     
     <script>
         // Global State
@@ -98,7 +102,7 @@
             await DB.requireAuth();
 
             // Init Map
-            MapManager.init('map');
+            const map = MapManager.init('map');
             
             // Build Tabs
             const tabContainer = document.getElementById('module-tabs');
@@ -110,16 +114,17 @@
             // Load initial module
             switchModule('transport', tabContainer.firstElementChild);
             
-            // Init baseline KPI
-            const baselineResults = SimulationEngine.runSimulation(currentParams);
-            UI.renderKPICards('kpi-container', baselineResults, true);
+            // Init new features (Traffic Regions, Bus Routes, Infrastructure)
+            if (typeof initFeatures === 'function' && map) {
+                initFeatures(map);
+            }
 
             // Listeners
             document.getElementById('toggleGrid').addEventListener('change', (e) => {
                 MapManager.toggleGrid(e.target.checked);
             });
 
-            document.getElementById('btnRun').addEventListener('click', runSim);
+            document.getElementById('btnRun').addEventListener('click', runEnhancedSimulation);
         });
 
         window.switchModule = (mod, btnNode) => {
