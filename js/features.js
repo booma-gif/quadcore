@@ -107,112 +107,119 @@ const TrafficRegionManager = {
     this.canvas.height = container.offsetHeight;
   },
 
-  startDrawing() {
-    this.drawingMode = true;
-    this.tempStart = null;
-    this.tempRect = null;
-    this.map.getContainer().style.cursor = 'crosshair';
-    this._showInstruction('Click and drag on the map to draw a traffic region');
-    
-    const onMouseDown = (e) => {
-      if (!this.drawingMode) return;
-      this.tempStart = e.latlng;
-      this.tempRect = L.rectangle([e.latlng, e.latlng], {
-        color: '#7c3aed', weight: 2, fillColor: 'rgba(139,92,246,0.2)', fillOpacity: 0.2, dashArray: '6,4'
-      }).addTo(this.map);
-    };
+  showTrafficRegions() {
+    // Clear existing zones first
+    this.clearAll();
 
-    const onMouseMove = (e) => {
-      if (!this.drawingMode || !this.tempRect || !this.tempStart) return;
-      this.tempRect.setBounds(L.latLngBounds(this.tempStart, e.latlng));
-    };
+    // Get current map bounds
+    const bounds = this.map.getBounds();
+    const sw = bounds.getSouthWest();
+    const ne = bounds.getNorthEast();
+    const latRange = ne.lat - sw.lat;
+    const lngRange = ne.lng - sw.lng;
 
-    const onMouseUp = (e) => {
-      if (!this.drawingMode || !this.tempRect || !this.tempStart) return;
-      const bounds = L.latLngBounds(this.tempStart, e.latlng);
-      // Check if area is too small
-      const size = this.map.latLngToContainerPoint(bounds.getNorthEast()).distanceTo(
-        this.map.latLngToContainerPoint(bounds.getSouthWest())
-      );
-      if (size < 30) {
-        this.map.removeLayer(this.tempRect);
-        this.tempRect = null;
-        this.tempStart = null;
-        return;
+    // Random zone count between 8 and 12
+    const zoneCount = Math.floor(Math.random() * 5) + 8;
+    const levels = ['low', 'medium', 'high', 'critical'];
+
+    for (let i = 0; i < zoneCount; i++) {
+      const level = levels[Math.floor(Math.random() * levels.length)];
+      const config = trafficLevels[level];
+
+      // Random center within map bounds (10% padding from edges)
+      const lat = sw.lat + latRange * (0.1 + Math.random() * 0.8);
+      const lng = sw.lng + lngRange * (0.1 + Math.random() * 0.8);
+      const center = L.latLng(lat, lng);
+
+      // Choose circle or polygon randomly
+      const useCircle = Math.random() > 0.45;
+      let zone;
+
+      if (useCircle) {
+        const radius = 400 + Math.random() * 800;
+        zone = L.circle(center, {
+          radius: radius,
+          color: config.color,
+          fillColor: config.fillColor,
+          fillOpacity: 1,
+          weight: 2,
+          opacity: 0.7,
+          interactive: true
+        });
+      } else {
+        const sides = Math.floor(3 + Math.random() * 4);
+        const baseRadius = (300 + Math.random() * 700) / 111320;
+        const points = [];
+        for (let s = 0; s < sides; s++) {
+          const angle = (s / sides) * 2 * Math.PI;
+          const r = baseRadius * (0.6 + Math.random() * 0.8);
+          const pLat = lat + r * Math.cos(angle);
+          const pLng = lng + r * Math.sin(angle) / Math.cos(lat * Math.PI / 180);
+          points.push([pLat, pLng]);
+        }
+        zone = L.polygon(points, {
+          color: config.color,
+          fillColor: config.fillColor,
+          fillOpacity: 1,
+          weight: 2,
+          opacity: 0.7,
+          interactive: true
+        });
       }
-      this._showIntensityPopup(bounds);
-      this.map.off('mousedown', onMouseDown);
-      this.map.off('mousemove', onMouseMove);
-      this.map.off('mouseup', onMouseUp);
-      this.map.dragging.enable();
-    };
 
-    this.map.dragging.disable();
-    this.map.on('mousedown', onMouseDown);
-    this.map.on('mousemove', onMouseMove);
-    this.map.on('mouseup', onMouseUp);
-  },
+      // Popup with traffic info
+      zone.bindPopup(
+        '<div style="min-width:160px">' +
+        '<b style="color:' + config.color + '">🚦 Traffic Zone</b><br>' +
+        '<hr style="border-color:#1a2e22;margin:5px 0">' +
+        'Level: <b style="color:' + config.color + '">' + level.charAt(0).toUpperCase() + level.slice(1) + '</b><br>' +
+        'Vehicles: <b>' + config.vehicles + '/hr</b><br>' +
+        'Travel time: <b>' + (config.travelTime > 0 ? '+' : '') + config.travelTime + ' min</b>' +
+        '</div>'
+      );
 
-  _showIntensityPopup(bounds) {
-    this._removeInstruction();
-    const center = bounds.getCenter();
-    const popup = L.popup({ closeOnClick: false, autoClose: false, className: 'traffic-popup-wrapper', maxWidth: 250 })
-      .setLatLng(center)
-      .setContent(`
-        <div class="traffic-popup">
-          <h4>Set Traffic Intensity</h4>
-          <div class="intensity-btns">
-            <button class="intensity-btn low" onclick="TrafficRegionManager._setIntensity('low')">🟢 Low</button>
-            <button class="intensity-btn medium" onclick="TrafficRegionManager._setIntensity('medium')">🟡 Medium</button>
-            <button class="intensity-btn high" onclick="TrafficRegionManager._setIntensity('high')">🔴 High</button>
-            <button class="intensity-btn critical" onclick="TrafficRegionManager._setIntensity('critical')">🟣 Critical</button>
-          </div>
-        </div>
-      `)
-      .openOn(this.map);
-    this._pendingBounds = bounds;
-    this._pendingPopup = popup;
-  },
+      zone.addTo(this.layerGroup);
 
-  _setIntensity(level) {
-    const bounds = this._pendingBounds;
-    const config = trafficLevels[level];
-    if (this._pendingPopup) this.map.closePopup(this._pendingPopup);
-    if (this.tempRect) this.map.removeLayer(this.tempRect);
-    this.tempRect = null;
-    this.tempStart = null;
-    this.drawingMode = false;
-    this.map.getContainer().style.cursor = '';
-    this.map.dragging.enable();
+      // Create center label
+      const labelCenter = useCircle ? center : zone.getBounds().getCenter();
+      const label = L.divIcon({
+        className: '',
+        html: `<div class="traffic-label" style="border-color:${config.color}">
+          <span style="color:${config.color}">● ${level.charAt(0).toUpperCase()+level.slice(1)} Traffic</span> — ${config.vehicles} vehicles/hr
+        </div>`,
+        iconSize: [180, 30], iconAnchor: [90, 15]
+      });
+      const labelMarker = L.marker(labelCenter, { icon: label, interactive: false }).addTo(this.layerGroup);
 
-    // Create final rectangle
-    const rect = L.rectangle(bounds, {
-      color: config.color, weight: 2, fillColor: config.fillColor,
-      fillOpacity: 1, interactive: true
-    }).addTo(this.layerGroup);
+      // Create bounds for dot animation
+      const zoneBounds = zone.getBounds();
+      const regionId = Date.now() + i + Math.random();
+      const region = { id: regionId, level, bounds: zoneBounds, rect: zone, labelMarker, config };
+      this.regions.push(region);
 
-    // Create center label
-    const center = bounds.getCenter();
-    const label = L.divIcon({
-      className: '',
-      html: `<div class="traffic-label" style="border-color:${config.color}">
-        <span style="color:${config.color}">● ${level.charAt(0).toUpperCase()+level.slice(1)} Traffic</span> — ${config.vehicles} vehicles/hr
-      </div>`,
-      iconSize: [180, 30], iconAnchor: [90, 15]
-    });
-    const labelMarker = L.marker(center, { icon: label, interactive: false }).addTo(this.layerGroup);
+      // Generate dots for animation
+      this._generateDotsForRegion(region);
 
-    const regionId = Date.now() + Math.random();
-    const region = { id: regionId, level, bounds, rect, labelMarker, config };
-    this.regions.push(region);
-
-    // Generate dots for animation
-    this._generateDotsForRegion(region);
+      // Staggered fade-in animation
+      zone.setStyle({ fillOpacity: 0, opacity: 0 });
+      const finalFillOpacity = 1;
+      const zoneRef = zone;
+      setTimeout(function() {
+        zoneRef.setStyle({ fillOpacity: finalFillOpacity, opacity: 0.7 });
+      }, i * 120);
+    }
 
     // Update sidebar list
     this._updateList();
     MetricAggregator.recalculate();
-    console.log(`[TrafficRegion] Added ${level} region, total: ${this.regions.length}`);
+    console.log(`[TrafficRegion] Auto-generated ${zoneCount} zones`);
+  },
+
+  clearAll() {
+    this.layerGroup.clearLayers();
+    this.dots = [];
+    this.regions = [];
+    this._updateList();
   },
 
   _generateDotsForRegion(region) {
@@ -1032,8 +1039,8 @@ function injectFeatureSections() {
         🚗 Traffic Regions <span class="chevron">▼</span>
       </div>
       <div class="sidebar-section-body">
-        <button class="btn-ghost-purple" onclick="TrafficRegionManager.startDrawing();this.classList.add('drawing-active')">
-          🚗 Draw Traffic Region
+        <button class="btn-ghost-purple" onclick="TrafficRegionManager.showTrafficRegions()">
+          🚗 Show Traffic of Region
         </button>
         <div class="active-items-list" id="traffic-regions-list">
           <div style="color:var(--text-secondary);font-size:0.8rem;padding:5px 0;">No regions drawn yet</div>
